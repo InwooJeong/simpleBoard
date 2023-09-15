@@ -17,6 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from pyweb_board import views
+
 urlpatterns = [
+    # admin
     path('admin/', admin.site.urls),
+
+    # board
+    path('list/', views.list),
+    path('write/', views.write),
+    path('insert/', views.insert),
+    path('download/', views.download),
 ]

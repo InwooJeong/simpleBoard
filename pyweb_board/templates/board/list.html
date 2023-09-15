@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BoardList</title>
+</head>
+<body>
+    <h2>pyweb board list</h2>
+    총 게시물 {{boardCount}} 개<br>
+    <hr>
+
+    <a href="/write">글쓰기</a>
+    <hr>
+    <table border="1">
+        <tr>
+            <th>번호</th>
+            <th>이름</th>
+            <th>제목</th>
+            <th>날짜</th>
+            <th>조회수</th>
+            <th>첨부파일</th>
+            <th>다운로드</th>
+        </tr>
+        {% for row in boardList %}
+        <tr>
+            <td>{{row.idx}}</td>
+            <td>{{row.writer}}</td>
+            <td><a href="/detail?idx={{row.idx}}">{{row.title}}</a></td>
+            <td>{{row.post_date|date:"Y-m-d"}}</td> <!-- | : 날짜 형식 -->
+            <td>{{row.hit}}</td>
+            <td>
+                {% if row.filesize > 0 %}
+                    <a href="/download?idx={{row.idx}}">
+                        <img style="width:2%;height:2%;" src="{% static 'images/yes_file.jpg'%}">
+                    </a>
+                {% else %}
+                    -
+                {% endif %}
+
+            </td>
+            <td>
+                {% if row.filesize > 0 %}
+                    {{row.down}}
+                {% else %}
+                    -
+                {% endif %}
+
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
