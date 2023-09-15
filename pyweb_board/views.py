@@ -96,7 +96,7 @@ def update(request):
     id = request.POST['idx']
     dto_src = Board.objects.get(idx=id)
     fname = dto_src.filename
-    fsize = 0
+    fsize = dto_src.filesize
 
     w = request.POST['writer']
     t = request.POST['title']
@@ -109,12 +109,12 @@ def update(request):
         for chunk in file.chunks():
             fp.write(chunk)
         fp.close()
-
         fsize = os.path.getsize(upload_dir + fname)
-        dto_new = Board(idx = id, writer = w, title = t, content = c, filename = fname, filesize = fsize)
-        dto_new.save()
 
-        return redirect("/list/")
+    dto_new = Board(idx = id, writer = w, title = t, content = c, filename = fname, filesize = fsize)
+    dto_new.save()
+
+    return redirect("/list/")
 
 @csrf_exempt
 def delete(request):
