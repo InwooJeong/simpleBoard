@@ -5,6 +5,86 @@
     <title>Title</title>
 </head>
 <body>
+    <h2>상세 보기</h2>
 
+    <!-- 게시글 시작 -->
+    <form method="post" name="form1" enctype="multipart/form-data">
+        <table border="1" width="700px">
+            <tr><td>조회수</td><td>{{dto.hit}}</td></tr>
+            <tr><td>이름</td><td><input name="writer" value="{{dto.writer}}"></td></tr>
+            <tr><td>제목</td><td><input name="title" value="{{dto.title}}"></td></tr>
+            <tr><td>날짜</td><td>{{dto.post_date}}</td></tr>
+            <tr><td>내용</td><td><textarea rows="5" cols="60"
+                            name="content">{{dto.content}}</textarea></td></tr>
+
+            <!-- 파일이 있을 때만 -->
+                <tr>
+                    <td>첨부파일</td>
+                    {% if dto.filesize > 0 %}
+                    <td>
+                        <a href="/download?idx={{dto.idx}}">
+                            {{dto.filename}}({{filesize}}KB)
+                        </a>
+                    </td>
+                    {% endif %}
+                    <td>
+                        <input type="file" name="file">
+                    </td>
+                </tr>
+
+            <tr>
+                <td colspan="2" align="center">
+                    <input type="hidden" name="idx" value="{{dto.idx}}">
+                    <input type="button" value="목록" onclick="home()">
+                    <input type="button" value="수정" onclick="update()">
+                    <input type="button" value="삭제" onclick="del()">
+                </td>
+            </tr>
+
+        </table>
+    </form>
+    <!-- 게시글 종료 -->
+
+    <!-- 댓글 작성 시작 -->
+    <form method="post" action="/reply_insert/">
+        {% csrf_token %}
+        <input name="writer" placeholder="이름"><br>
+        <textarea rows="5" cols="80" name="content"
+                  placeholder="댓글 내용을 입력 하세요"></textarea><br>
+        <input type="hidden" name="idx" value="{{dto.idx}}">
+        <button>댓글 작성</button>
+    </form>
+    <!-- 댓글 작성 종료 -->
+
+    <!-- 댓글 목록 시작@@@@@@@@@@@@@@@@@@@@@@@@@ -->
+    <h4>달린 댓글</h4>
+    <table border="1" width="700px">
+        {% for row in commentList %}
+        <tr><td>
+            <b>{{row.writer}}</b>({{row.post_date}}<br>
+            {{row.content}}
+        </td></tr>
+        {% endfor %}
+    </table>
+    <!-- 댓글 목록 종료@@@@@@@@@@@@@@@@@@@@@@@@@ -->
+
+<script>
+    function home(){
+        location.href="/list/";
+    }
+
+    function update(){
+        document.form1.action="/update/";
+        document.form1.submit();
+    }
+
+    function del(){
+        if(confirm("삭제?")){
+            document.form1.action="/delete/";
+            document.form1.submit();
+        }
+    }
+
+</script>
 </body>
 </html>
