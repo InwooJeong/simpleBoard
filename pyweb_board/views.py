@@ -1,6 +1,8 @@
+import math
 import os
 import urllib
 
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -11,12 +13,111 @@ from django.http.response import HttpResponse
 # Create your views here.
 upload_dir = 'pyweb_board/static/upload/'
 
+# 페이징 처리 추가 전
+# def list(request):
+#     boardCount = Board.objects.count()
+#     boardList = Board.objects.all().order_by("-idx")
+#     return render(request, "board/list.html",
+#                   {"boardList": boardList, "boardCount": boardCount})
 
+# 페이징 처리 추가
 def list(request):
-    boardCount = Board.objects.count()
-    boardList = Board.objects.all().order_by("-idx")
-    return render(request, "board/list.html",
-                  {"boardList": boardList, "boardCount": boardCount})
+    # 검색 처리 - 검색 종료, 검색어 있을 때와 없을 때 처리
+    try:
+        search_option = request.POST['search_option']
+    except:
+        search_option = ''
+
+    try:
+        search = request.POST['search']
+    except:
+        search=''
+
+    print(search)
+    print(search_option)
+
+    # 검색 결과에 따른 레코드 개수 계산
+    # 필드명_contains = 값 : where 필드명 like '%값%'
+    # count() : select count(*)
+    if search_option == 'all':
+        boardCount = Board.objects.filter(Q(writer__contains=search)
+                                          | Q(title__contains=search)
+                                          | Q(content__contains=search)).count()
+    elif search_option == 'writer':
+        boardCount = Board.objects.filter(Q(writer__contains=search)).count()
+    elif search_option == 'title':
+        boardCount = Board.objects.filter(Q(title__contains=search)).count()
+    elif search_option == 'content':
+        boardCount = Board.objects.filter(Q(content__contains=search)).count()
+    else:
+        boardCount = Board.objects.count()
+    # 페이지 처리
+    try:
+        start = int(request.GET['start'])
+    except:
+        start = 0
+    page_size = 5
+    block_size = 5
+
+    end = start + page_size
+
+    total_page = math.ceil(boardCount / page_size)
+    current_page = math.ceil((start + 1) / page_size)
+    start_page = math.floor((current_page - 1) / block_size) * block_size + 1
+    end_page = start_page + block_size - 1
+
+    # 마지막 페이지가 토탈 페이지보다 클 경우 고려하여 보정
+    if end_page > total_page:
+        end_page = total_page
+
+    print('total page: ', total_page)
+    print('current page: ', current_page)
+    print('start page: ', start_page)
+    print('end page: ', end_page)
+
+    # 프리뷰 리스트
+    if start_page >= block_size:
+        prev_list = (start_page - 2) * page_size
+    else:
+        prev_list = 0
+
+    # 넥스트 리스트
+    if end_page < total_page:
+        nest_list = end_page * page_size
+    else:
+        next_list = 0
+
+    if search_option == 'all':
+        boardList = Board.objects.filter(Q(writer__contains=search)
+                                         | Q(title__contains=search)
+                                         | Q(content__contains=search)).order_by("-idx")[start:end]
+    elif search_option == 'writer':
+        boardList = Board.objects.filter(Q(writer__contains=search)).order_by("-idx")[start:end]
+    elif search_option == 'title':
+        boardList = Board.objects.filter(Q(title__contains=search)).order_by("-idx")[start:end]
+    elif search_option == 'content':
+        boardList = Board.objects.filter(Q(content__contains=search)).order_by("-idx")[start:end]
+    else:
+        boardList = Board.objects.all().order_by("-idx")[start:end]
+
+    # link 태그를 미리 만들어
+    links = []
+    for i in range(start_page, end_page + 1):
+        page_start = (i - 1) * page_size
+        links.append("<a href='/list/?start=" + str(page_start) + "'>" + str(i) + "</a>")
+
+    return render(request, 'board/list.html',
+                 {"boardList": boardList,
+                  "boardCount": boardCount,
+                  "search_option": search_option,
+                  "search": search,
+                  "range": range(start_page - 1, end_page),
+                  "start_page": start_page,
+                  "end_page": end_page,
+                  "total_page": total_page,
+                  "prev_list": prev_list,
+                  "next_list": next_list,
+                  "links": links})
 
 
 # render(request, 렌더링할 페이지 json)

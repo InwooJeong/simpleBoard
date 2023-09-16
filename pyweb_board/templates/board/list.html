@@ -10,6 +10,48 @@
     총 게시물 {{boardCount}} 개<br>
     <hr>
 
+    <form method="post">
+        {% csrf_token %}
+        <!-- 검색 기능 시작 -->
+        <select name = "search_option">
+        {% if search_option == "writer" %}
+            <option value="">선택하세요</option>
+	        <option value="writer" selected>이름</option>
+	        <option value="title">제목</option>
+	        <option value="content">내용</option>
+	        <option value="all">이름+제목+내용</option>
+        {% elif search_option == "title" %}
+            <option value="">선택하세요</option>
+	        <option value="writer">이름</option>
+	        <option value="title" selected>제목</option>
+	        <option value="content">내용</option>
+	        <option value="all">이름+제목+내용</option>
+        {% elif search_option == "content" %}
+            <option value="">선택하세요</option>
+	        <option value="writer">이름</option>
+	        <option value="title">제목</option>
+	        <option value="content" selected>내용</option>
+	        <option value="all">이름+제목+내용</option>
+        {% elif search_option == "all" %}
+            <option value="">선택하세요</option>
+	        <option value="writer">이름</option>
+	        <option value="title">제목</option>
+	        <option value="content">내용</option>
+	        <option value="all" selected>이름+제목+내용</option>
+        {% else %}
+            <option value="" selected>선택하세요</option>
+	        <option value="writer">이름</option>
+	        <option value="title">제목</option>
+	        <option value="content">내용</option>
+	        <option value="all">이름+제목+내용</option>
+        {% endif %}
+        </select>
+        <input type="text" name="search" value="{{search}}"> <!-- 검색하기 위한 입력 박스에 이전에 입력했던 내용이 유지되도록 설정 -->
+	    <input type="submit" value="검색">
+        <!-- 검색 기능 종료 -->
+    </form>
+    <br>
+    <hr>
     <a href="/write">글쓰기</a>
     <hr>
     <table border="1">
@@ -49,6 +91,26 @@
             </td>
         </tr>
         {% endfor %}
+        <!-- 페이징 처리 시작 -->
+        <tr>
+            <td colspan="7" align="center">
+            {% if start_page >= block_size %}
+                <a href="/list/?start={{prev_list}}">[이전]</a>
+            {% endif %}
+            <!-- escape 문자 끄겠다. -->
+            {% autoescape off %}
+            <!-- 링크는 위쪽에서 만들기 때문에 뿌리기만 하면 됨. -->
+            {% for link in links %}
+                {{link}}
+            {% endfor %}
+            <!-- escape 문자 켜겠다. -->
+            {% endautoescape %}
+            {% if end_page < total_page %}
+                <a href="/list/?start={{next_list}}">[다음]</a>
+            {% endif %}
+            </td>
+        </tr>
+        <!-- 페이징 처리 종료 -->
     </table>
 
 </body>
